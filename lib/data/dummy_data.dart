@@ -1,4 +1,3 @@
-import 'package:flutter/material.dart';
 import 'package:pets_tracker/models/pet.dart';
 
 var dummyPets = [
@@ -10,6 +9,7 @@ var dummyPets = [
     images: const [
       'assets/dog-1.png',
       'assets/dog-2.png',
+      'assets/dog-3.png',
     ],
   ),
   Pet(

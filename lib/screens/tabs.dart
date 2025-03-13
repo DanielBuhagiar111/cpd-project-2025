@@ -26,20 +26,17 @@ class _TabsScreenState extends State<TabsScreen> {
       allPets: dummyPets,
     );
 
-    var activePageTitle = 'Pets:';
-
     return Scaffold(
       appBar: AppBar(
         title: const Text(
           "Pets Tracker",
           style: TextStyle(color: Colors.white),
         ),
-        backgroundColor: const Color(0xFF424141), 
+        backgroundColor: const Color(0xFF424141),
       ),
       body: activePage,
       bottomNavigationBar: BottomNavigationBar(
-        backgroundColor:
-            const Color(0xFF424141),
+        backgroundColor: const Color(0xFF424141),
         onTap: _selectPage,
         currentIndex: _selectedPageIndex,
         items: const [

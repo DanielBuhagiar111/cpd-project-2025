@@ -1,5 +1,3 @@
-import 'package:flutter/material.dart';
-
 class Pet {
   const Pet({
     required this.id,

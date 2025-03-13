@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:pets_tracker/models/pet.dart';
-import 'package:pets_tracker/screens/pet_details.dart';
 
 class PetItem extends StatelessWidget {
   const PetItem({super.key, required this.pet, required this.onSelectPet});
@@ -43,7 +42,8 @@ class PetItem extends StatelessWidget {
               left: 0,
               right: 0,
               child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                 decoration: const BoxDecoration(
                   color: Colors.black54,
                 ),
