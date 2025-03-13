@@ -17,7 +17,7 @@ class PetDetails extends StatelessWidget {
         child: Padding(
           padding: const EdgeInsets.all(16.0),
           child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start, // Align to start
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               _buildDetailRow(context, 'Name:', pet.name),
               _buildDetailRow(context, 'Species:', pet.species),
@@ -39,7 +39,7 @@ class PetDetails extends StatelessWidget {
                     borderRadius: BorderRadius.circular(14),
                     child: Image.asset(
                       image,
-                      height: 200,
+                      height: 250,
                       width: double.infinity,
                       fit: BoxFit.cover,
                     ),
@@ -79,19 +79,18 @@ class PetDetails extends StatelessWidget {
               color: Colors.white,
             ),
           ),
-          const Spacer(), // Pushes the value to the right
+          const Spacer(),
           Column(
-            crossAxisAlignment:
-                CrossAxisAlignment.end, // Aligns text & underline to the right
+            crossAxisAlignment: CrossAxisAlignment.end,
             children: [
               Text(
                 value,
                 style: const TextStyle(color: Colors.white),
               ),
               Container(
-                width: 120, // Adjust width as needed
+                width: 200,
                 height: 2,
-                color: Colors.white, // Underline
+                color: Colors.white,
               ),
             ],
           ),
