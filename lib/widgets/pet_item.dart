@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:pets_tracker/models/pet.dart';
 
@@ -30,11 +32,11 @@ class PetItem extends StatelessWidget {
                 borderRadius: BorderRadius.circular(
                   14,
                 ), // Slightly smaller than the container
-                child: Image.asset(
-                  pet.images[0],
+                child: Image.file(
+                  File(pet.images[0]),
                   height: double.infinity,
                   width: double.infinity,
-                  fit: BoxFit.cover,
+                  fit: BoxFit.contain,
                 ),
               ),
             Positioned(

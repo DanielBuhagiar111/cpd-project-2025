@@ -1,4 +1,7 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
 import 'package:pets_tracker/screens/add_pet.dart';
 import 'package:pets_tracker/screens/view_pets.dart';
 import 'package:pets_tracker/data/dummy_data.dart';
@@ -14,53 +17,96 @@ class TabsScreen extends StatefulWidget {
 }
 
 class _TabsScreenState extends State<TabsScreen> {
-  int _selectedPageIndex = 0; // To keep track of the selected tab
+  int _selectedPageIndex = 0;
+  List<Pet> _pets = dummyPets;
 
-  // Pet data for the view
-  final List<Pet> _pets = dummyPets;
+  void _loadPets() async {
+    final url = Uri.https(
+      'cpd-project-2025-default-rtdb.europe-west1.firebasedatabase.app',
+      'pets.json',
+    );
 
-  // Function to add a new pet
-  void _addNewPet(Pet pet) {
-    setState(() {
-      _pets.add(pet);
-    });
+    try {
+      final response = await http.get(url);
+
+      if (response.statusCode == 200) {
+        final List<Pet> loadedList = [];
+
+        final Map<String, dynamic> firebaseData = json.decode(response.body);
+
+        if (firebaseData.isEmpty) {
+          print("No pets found.");
+          return;
+        }
+
+        // Iterate over the fetched data
+        firebaseData.forEach((id, petData) {
+          final Pet pet = Pet(
+            id: id,
+            name: petData["name"],
+            species: petData["species"],
+            dob: DateTime.parse(petData["dob"]),
+            images: List<String>.from(petData["images"] ?? []),
+          );
+
+          loadedList.add(pet);
+        });
+
+        setState(() {
+          _pets = loadedList;
+        });
+      } else {
+        print("Failed to load pets: ${response.statusCode}");
+      }
+    } catch (error) {
+      print("Error loading pets: $error");
+    }
   }
 
-  // Function to handle page change (tab selection)
+  @override
+  void initState() {
+    super.initState();
+    _loadPets();
+  }
+
   void _selectPage(int index) {
     setState(() {
       _selectedPageIndex = index;
     });
   }
 
+  void _switchToViewPets() {
+    setState(() {
+      _selectedPageIndex = 0;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
-    // Active screen widget
     Widget activePage = PetsScreen(
       allPets: _pets,
     );
 
-    // Change active screen based on selected index
     if (_selectedPageIndex == 1) {
       activePage = AddPet(
-        onAddPet: _addNewPet, // Pass the callback to AddPet
+        switchToViewPets: _switchToViewPets,
       );
     }
 
     return Scaffold(
       appBar: AppBar(
         title: const Text(
-          "Pets Tracker", // Use the active page title
+          "Pets Tracker",
           style: TextStyle(color: Colors.white),
         ),
         backgroundColor: const Color(0xFF424141),
       ),
-      body: activePage, // Show active page based on the selected tab
+      body: activePage,
       bottomNavigationBar: BottomNavigationBar(
         backgroundColor: const Color(0xFF424141),
         onTap: _selectPage,
         currentIndex: _selectedPageIndex,
-        selectedItemColor: Colors.black, // Highlight selected icon
+        selectedItemColor: Colors.black,
         unselectedItemColor: Colors.grey,
         items: const [
           BottomNavigationBarItem(
