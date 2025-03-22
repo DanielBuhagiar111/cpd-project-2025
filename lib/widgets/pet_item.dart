@@ -25,7 +25,6 @@ class PetItem extends StatelessWidget {
         ),
         child: Stack(
           children: [
-            // Display the first image of the pet
             if (pet.images.isNotEmpty)
               ClipRRect(
                 borderRadius: BorderRadius.circular(14),
@@ -41,7 +40,8 @@ class PetItem extends StatelessWidget {
               left: 0,
               right: 0,
               child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                 decoration: const BoxDecoration(
                   color: Colors.black54,
                 ),
