@@ -1,18 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:pets_tracker/models/pet.dart';
-import 'package:pets_tracker/screens/pet_details.dart';
 import 'package:pets_tracker/widgets/pet_item.dart';
 
 class PetsScreen extends StatelessWidget {
-  const PetsScreen({super.key, required this.allPets});
+  const PetsScreen({super.key, required this.allPets, this.onPetSelected});
 
   final List<Pet> allPets;
-
-  void _selectPet(BuildContext context, Pet clickedPet) {
-    Navigator.of(context).push(
-      MaterialPageRoute(builder: (ctx) => PetDetails(pet: clickedPet)),
-    ); // Navigator.push(context, route)
-  }
+  final Function(Pet)? onPetSelected;
 
   @override
   Widget build(BuildContext context) {
@@ -20,11 +14,8 @@ class PetsScreen extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const Padding(
-          padding: EdgeInsets.only(
-              left: 24.0,
-              top: 15.0,
-              right: 24.0,
-              bottom: 0), // Reduced bottom padding
+          padding:
+              EdgeInsets.only(left: 24.0, top: 15.0, right: 24.0, bottom: 0),
           child: Text(
             'Pets:',
             style: TextStyle(
@@ -41,12 +32,14 @@ class PetsScreen extends StatelessWidget {
               mainAxisSpacing: 20,
             ),
             children: [
-              if(allPets.isNotEmpty)
+              if (allPets.isNotEmpty)
                 for (final pet in allPets)
                   PetItem(
                     pet: pet,
                     onSelectPet: () {
-                      _selectPet(context, pet);
+                      if (onPetSelected != null) {
+                        onPetSelected!(pet);
+                      }
                     },
                   ),
             ],

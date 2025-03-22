@@ -1,116 +1,52 @@
-import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:pets_tracker/models/pet.dart';
 import 'package:intl/intl.dart';
-import 'package:image_picker/image_picker.dart';
-import 'package:path_provider/path_provider.dart';
-import 'package:http/http.dart' as http;
-import 'dart:convert';
-
+import 'package:pets_tracker/services/firebase_service.dart';
+import 'package:pets_tracker/services/image_service.dart';
 import 'package:pets_tracker/services/notifications.dart';
+import 'package:pets_tracker/widgets/detail_row.dart';
+import 'package:pets_tracker/widgets/pet_image.dart';
 
 class PetDetails extends StatefulWidget {
-  const PetDetails({super.key, required this.pet});
+  const PetDetails({super.key, required this.pet, this.onImageSelected});
 
   final Pet pet;
+  final Function(int)? onImageSelected;
 
   @override
   _PetDetailsState createState() => _PetDetailsState();
 }
 
 class _PetDetailsState extends State<PetDetails> {
+  // ignore: unused_field
   String? _imagePath;
   final NotificationService _notificationService = NotificationService();
-
-  Future<String> generateFilePath(XFile image) async {
-    final directory = await getApplicationDocumentsDirectory();
-    final String path =
-        '${directory.path}/${DateTime.now().millisecondsSinceEpoch}.jpg';
-    return path;
-  }
-
-  Future<void> saveImageToAppDirectory(XFile image, String path) async {
-    final imageFile = File(path);
-    await imageFile.writeAsBytes(await image.readAsBytes());
-  }
+  final ImageService _imageService = ImageService();
+  final FirebaseService _firebaseService = FirebaseService();
 
   Future<void> _pickImage() async {
-    final ImagePicker picker = ImagePicker();
     try {
-      final XFile? image = await picker.pickImage(source: ImageSource.camera);
-
-      if (image != null) {
-        final path = await generateFilePath(image);
-        await saveImageToAppDirectory(image, path);
+      final imagePath = await _imageService.pickImage();
+      if (imagePath != null) {
+        final path = await _imageService.generateFilePath(XFile(imagePath));
+        await _imageService.saveImageToAppDirectory(XFile(imagePath), path);
 
         setState(() {
           _imagePath = path;
           widget.pet.images.add(path);
         });
 
-        final url = Uri.https(
-          'cpd-project-2025-default-rtdb.europe-west1.firebasedatabase.app',
-          'pets/${widget.pet.id}.json',
-        );
+        await _firebaseService.updatePetImages(
+            widget.pet.id, widget.pet.images);
 
-        try {
-          final response = await http.patch(
-            url,
-            headers: {'Content-Type': 'application/json'},
-            body: json.encode({
-              'images': widget.pet.images,
-            }),
-          );
-
-          if (response.statusCode == 200) {
-            _notificationService.showNotification(
-                2, 'Sucess!', 'Pet was updated in firebase!');
-          } else {
-            _notificationService.showNotification(
-                2, 'Fail!', 'Pet was not updated in firebase!');
-          }
-        } catch (e) {
-          _notificationService.showNotification(
-              2, 'Fail!', 'Pet was not updated in firebase!');
-        }
+        _notificationService.showNotification(
+            2, 'Success!', 'Pet was updated in firebase!');
       }
     } catch (e) {
       _notificationService.showNotification(
           2, 'Fail!', 'Could not pick image!');
     }
-  }
-
-  Widget _buildDetailRow(BuildContext context, String label, String value) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8.0),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          Text(
-            label,
-            style: const TextStyle(
-              fontWeight: FontWeight.bold,
-              color: Colors.white,
-            ),
-          ),
-          const Spacer(),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.end,
-            children: [
-              Text(
-                value,
-                style: const TextStyle(color: Colors.white),
-              ),
-              Container(
-                width: 200,
-                height: 2,
-                color: Colors.white,
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
   }
 
   @override
@@ -125,10 +61,11 @@ class _PetDetailsState extends State<PetDetails> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              _buildDetailRow(context, 'Name:', widget.pet.name),
-              _buildDetailRow(context, 'Species:', widget.pet.species),
-              _buildDetailRow(context, 'Date of Birth:',
-                  DateFormat('yyyy-MM-dd').format(widget.pet.dob)),
+              DetailRow(label: 'Name:', value: widget.pet.name),
+              DetailRow(label: 'Species:', value: widget.pet.species),
+              DetailRow(
+                  label: 'Date of Birth:',
+                  value: DateFormat('yyyy-MM-dd').format(widget.pet.dob)),
               const SizedBox(height: 10),
               const Padding(
                 padding: EdgeInsets.only(bottom: 15.0),
@@ -138,21 +75,14 @@ class _PetDetailsState extends State<PetDetails> {
                       color: Colors.white, fontWeight: FontWeight.bold),
                 ),
               ),
-              for (var image in widget.pet.images)
-                Padding(
-                  padding: const EdgeInsets.only(bottom: 5.0),
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.circular(14),
-                    child: Container(
-                      height: 250,
-                      width: double.infinity,
-                      color: Colors.black,
-                      child: Image.file(
-                        File(image),
-                        fit: BoxFit.contain,
-                      ),
-                    ),
-                  ),
+              for (int i = 0; i < widget.pet.images.length; i++)
+                GestureDetector(
+                  onTap: () {
+                    if (widget.onImageSelected != null) {
+                      widget.onImageSelected!(i);
+                    }
+                  },
+                  child: PetImage(imagePath: widget.pet.images[i]),
                 ),
               const SizedBox(height: 10),
               Center(
@@ -162,8 +92,7 @@ class _PetDetailsState extends State<PetDetails> {
                     padding: const EdgeInsets.symmetric(
                         horizontal: 40, vertical: 16),
                     shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(30),
-                    ),
+                        borderRadius: BorderRadius.circular(30)),
                   ),
                   child: const Text('Add Image'),
                 ),

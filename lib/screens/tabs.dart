@@ -4,6 +4,7 @@ import 'package:http/http.dart' as http;
 import 'package:pets_tracker/screens/add_pet.dart';
 import 'package:pets_tracker/screens/view_pets.dart';
 import 'package:pets_tracker/models/pet.dart';
+import 'package:pets_tracker/screens/pet_details.dart';
 
 class TabsScreen extends StatefulWidget {
   const TabsScreen({super.key});
@@ -16,6 +17,7 @@ class TabsScreen extends StatefulWidget {
 
 class _TabsScreenState extends State<TabsScreen> {
   int _selectedPageIndex = 0;
+  int? _selectedImageIndex;
 
   Future<List<Pet>> _loadPets() async {
     final url = Uri.https(
@@ -84,7 +86,24 @@ class _TabsScreenState extends State<TabsScreen> {
             return Center(child: Text('Error: ${snapshot.error}'));
           } else {
             final pets = snapshot.data ?? [];
-            return PetsScreen(allPets: pets);
+            return PetsScreen(
+              allPets: pets,
+              onPetSelected: (pet) {
+                Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (ctx) => PetDetails(
+                      pet: pet,
+                      onImageSelected: (index) {
+                        setState(() {
+                          _selectedImageIndex = index;
+                        });
+                        print('Selected Image Index: $_selectedImageIndex');
+                      },
+                    ),
+                  ),
+                );
+              },
+            );
           }
         },
       );
