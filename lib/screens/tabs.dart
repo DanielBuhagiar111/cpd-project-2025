@@ -1,10 +1,8 @@
 import 'dart:convert';
-
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:pets_tracker/screens/add_pet.dart';
 import 'package:pets_tracker/screens/view_pets.dart';
-import 'package:pets_tracker/data/dummy_data.dart';
 import 'package:pets_tracker/models/pet.dart';
 
 class TabsScreen extends StatefulWidget {
@@ -18,9 +16,8 @@ class TabsScreen extends StatefulWidget {
 
 class _TabsScreenState extends State<TabsScreen> {
   int _selectedPageIndex = 0;
-  List<Pet> _pets = dummyPets;
 
-  void _loadPets() async {
+  Future<List<Pet>> _loadPets() async {
     final url = Uri.https(
       'cpd-project-2025-default-rtdb.europe-west1.firebasedatabase.app',
       'pets.json',
@@ -30,43 +27,31 @@ class _TabsScreenState extends State<TabsScreen> {
       final response = await http.get(url);
 
       if (response.statusCode == 200) {
-        final List<Pet> loadedList = [];
-
         final Map<String, dynamic> firebaseData = json.decode(response.body);
 
-        if (firebaseData.isEmpty) {
-          print("No pets found.");
-          return;
+        if (firebaseData.isNotEmpty) {
+          final List<Pet> loadedList = [];
+          firebaseData.forEach((id, petData) {
+            final Pet pet = Pet(
+              id: id,
+              name: petData["name"],
+              species: petData["species"],
+              dob: DateTime.parse(petData["dob"]),
+              images: List<String>.from(petData["images"] ?? []),
+            );
+            loadedList.add(pet);
+          });
+
+          return loadedList;
+        } else {
+          return [];
         }
-
-        // Iterate over the fetched data
-        firebaseData.forEach((id, petData) {
-          final Pet pet = Pet(
-            id: id,
-            name: petData["name"],
-            species: petData["species"],
-            dob: DateTime.parse(petData["dob"]),
-            images: List<String>.from(petData["images"] ?? []),
-          );
-
-          loadedList.add(pet);
-        });
-
-        setState(() {
-          _pets = loadedList;
-        });
       } else {
-        print("Failed to load pets: ${response.statusCode}");
+        return [];
       }
     } catch (error) {
-      print("Error loading pets: $error");
+      return [];
     }
-  }
-
-  @override
-  void initState() {
-    super.initState();
-    _loadPets();
   }
 
   void _selectPage(int index) {
@@ -83,13 +68,25 @@ class _TabsScreenState extends State<TabsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    Widget activePage = PetsScreen(
-      allPets: _pets,
-    );
+    Widget activePage;
 
     if (_selectedPageIndex == 1) {
       activePage = AddPet(
         switchToViewPets: _switchToViewPets,
+      );
+    } else {
+      activePage = FutureBuilder<List<Pet>>(
+        future: _loadPets(),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(child: CircularProgressIndicator());
+          } else if (snapshot.hasError) {
+            return Center(child: Text('Error: ${snapshot.error}'));
+          } else {
+            final pets = snapshot.data ?? [];
+            return PetsScreen(allPets: pets);
+          }
+        },
       );
     }
 

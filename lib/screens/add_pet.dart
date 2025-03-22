@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:pets_tracker/services/notifications.dart';
 import 'package:uuid/uuid.dart';
 import 'dart:io';
 import 'package:intl/intl.dart';
@@ -24,6 +25,7 @@ class _AddPetState extends State<AddPet> {
   final _speciesController = TextEditingController();
   final DateFormat formatter = DateFormat('yyyy-MM-dd');
   final uuid = Uuid();
+  final NotificationService _notificationService = NotificationService();
 
   DateTime? _dob;
   String? _imagePath;
@@ -68,7 +70,7 @@ class _AddPetState extends State<AddPet> {
         });
       }
     } catch (e) {
-      print("Error picking image: $e");
+      _notificationService.showNotification( 2, 'Fail!', 'Could not pick image!');
     }
   }
 
@@ -111,7 +113,6 @@ class _AddPetState extends State<AddPet> {
           'pets.json',
         );
 
-        // Step 3: Send the pet object to Firebase
         final response = await http.post(url,
             headers: {'Content-Type': 'application/json'},
             body: json.encode({
@@ -128,12 +129,14 @@ class _AddPetState extends State<AddPet> {
             _imagePath = path;
           });
 
+          _notificationService.showNotification( 2, 'Sucess!', 'Pet was saved to firebase!');
+
           widget.switchToViewPets();
         } else {
-          print("Failed to save pet to Firebase: ${response.body}");
+          _notificationService.showNotification( 2, 'Fail!', 'Pet coult not be saved to firebase!');
         }
       } catch (e) {
-        print("Error saving pet to Firebase: $e");
+        _notificationService.showNotification( 2, 'Fail!', 'Pet coult not be saved to firebase!');
       }
     }
   }
@@ -209,7 +212,6 @@ class _AddPetState extends State<AddPet> {
                 ),
               ),
               if (_imagePath != null) ...[
-                // If an image has been selected, display it
                 const SizedBox(height: 20),
                 Center(
                   child: ClipRRect(

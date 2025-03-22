@@ -41,13 +41,14 @@ class PetsScreen extends StatelessWidget {
               mainAxisSpacing: 20,
             ),
             children: [
-              for (final pet in allPets)
-                PetItem(
-                  pet: pet,
-                  onSelectPet: () {
-                    _selectPet(context, pet);
-                  },
-                ),
+              if(allPets.isNotEmpty)
+                for (final pet in allPets)
+                  PetItem(
+                    pet: pet,
+                    onSelectPet: () {
+                      _selectPet(context, pet);
+                    },
+                  ),
             ],
           ),
         ),

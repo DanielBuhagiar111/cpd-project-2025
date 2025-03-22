@@ -7,6 +7,8 @@ import 'package:path_provider/path_provider.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 
+import 'package:pets_tracker/services/notifications.dart';
+
 class PetDetails extends StatefulWidget {
   const PetDetails({super.key, required this.pet});
 
@@ -18,10 +20,12 @@ class PetDetails extends StatefulWidget {
 
 class _PetDetailsState extends State<PetDetails> {
   String? _imagePath;
+  final NotificationService _notificationService = NotificationService();
 
   Future<String> generateFilePath(XFile image) async {
     final directory = await getApplicationDocumentsDirectory();
-    final String path = '${directory.path}/${DateTime.now().millisecondsSinceEpoch}.jpg';
+    final String path =
+        '${directory.path}/${DateTime.now().millisecondsSinceEpoch}.jpg';
     return path;
   }
 
@@ -36,18 +40,17 @@ class _PetDetailsState extends State<PetDetails> {
       final XFile? image = await picker.pickImage(source: ImageSource.camera);
 
       if (image != null) {
-        // Save the image locally
         final path = await generateFilePath(image);
         await saveImageToAppDirectory(image, path);
 
         setState(() {
           _imagePath = path;
-          widget.pet.images.add(path);  // Add new image path to the pet's image list
+          widget.pet.images.add(path);
         });
 
         final url = Uri.https(
           'cpd-project-2025-default-rtdb.europe-west1.firebasedatabase.app',
-          'pets/${widget.pet.id}.json', // Assuming you save pet data under its ID in Firebase
+          'pets/${widget.pet.id}.json',
         );
 
         try {
@@ -60,16 +63,20 @@ class _PetDetailsState extends State<PetDetails> {
           );
 
           if (response.statusCode == 200) {
-            print("Pet updated successfully in Firebase");
+            _notificationService.showNotification(
+                2, 'Sucess!', 'Pet was updated in firebase!');
           } else {
-            print("Failed to update pet in Firebase: ${response.body}");
+            _notificationService.showNotification(
+                2, 'Fail!', 'Pet was not updated in firebase!');
           }
         } catch (e) {
-          print("Error updating pet in Firebase: $e");
+          _notificationService.showNotification(
+              2, 'Fail!', 'Pet was not updated in firebase!');
         }
       }
     } catch (e) {
-      print("Error picking image: $e");
+      _notificationService.showNotification(
+          2, 'Fail!', 'Could not pick image!');
     }
   }
 
