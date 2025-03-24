@@ -42,11 +42,11 @@
         <string>UIInterfaceOrientationLandscapeRight</string>
     </array>
     <key>NSCameraUsageDescription</key>
-    <string>We need access to your camera for scanning QR codes.</string>
+    <string></string>
     <key>NSPhotoLibraryUsageDescription</key>
-    <string>We need access to your photo library for saving images.</string>
+    <string></string>
     <key>NSLocationWhenInUseUsageDescription</key>
-    <string>We need access to your location for better functionality.</string>
+    <string></string>
     <key>UIBackgroundModes</key>
     <array>
         <string>fetch</string>
